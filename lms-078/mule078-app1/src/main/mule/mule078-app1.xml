@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="4929c7a3-a6b1-412c-a3b0-1fe42b023568" basePath="/api/v1" >
+		<http:listener-connection host="${http.host}" port="${http.port}" />
+	</http:listener-config>
+	<api-gateway:autodiscovery apiId="${autodiscovery.id}" ignoreBasePath="true" doc:name="API Autodiscovery JSON" doc:id="2db6355e-7df9-43ba-b79d-7189d21a011d" flowRef="mule078-app1-json" />
+	<api-gateway:autodiscovery apiId="${autodiscovery.id}" ignoreBasePath="true" doc:name="API Autodiscovery XML" doc:id="2ff99e51-831e-449f-bc66-7124c388387a" flowRef="mule078-app1-xml" />
+	<configuration-properties doc:name="Configuration properties" doc:id="33e7a9ed-d0ea-4106-babf-17abc2f91b1e" file="config.yaml" />
+	<flow name="mule078-app1-xml" doc:id="0ed0cf04-616c-4102-92b0-623af81073ae" >
+		<http:listener doc:name="Listener" doc:id="35b45c97-53be-4a54-9092-c6ae5a122c20" config-ref="HTTP_Listener_config" path="/hello/xml" />
+		<ee:transform doc:name="Transform Message" doc:id="1cc46965-f142-442f-9957-3a397de0f661" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+--- 
+{
+	"xmlroot": {
+		"message": payload.message,
+		"name":  payload.name
+	}
+	
+		
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log Everything!!!" doc:id="b5f4a302-099e-47c7-a052-b5478152a24a" message="#[payload]" />
+	</flow>
+	<flow name="mule078-app1-json" doc:id="afc4ae7f-eb4d-435e-bb96-280e4d4c9041" >
+		<http:listener doc:name="Listener" doc:id="5aa07f02-b565-4e5c-91cb-0d0471674edf" config-ref="HTTP_Listener_config" path="/hello/json">
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="7294c0f3-8da5-4c9f-b0ac-ba5198bd5297" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+   "message": payload.message,
+   "name":  payload.name
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log Just things!" doc:id="5cda9974-f42b-43d5-98ff-fc67bc031100" message='#[output application/json
+---
+{
+	"message": payload,
+	"l_path": attributes.listenerPath
+}]'/>
+	</flow>
+</mule>
